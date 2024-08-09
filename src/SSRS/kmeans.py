@@ -10,10 +10,11 @@ class Partition:
         self.uid = uid
         self.centroid = centroid  # 质心值或质心向量
         self.samples = samples  # 属于该分区的所有样本
-        self.auv_type = auv_type
+        self.auv_type = auv_type # "confidence" / "las" / "dsa"
         self.avg_auv = 0  # 求辅助变量的均值
         self.std = 0  # 标准差
         self.normalized_std = 0  # 归一化标准差
+        self.n_p = 0  # 从该分区中采样的样本数
 
 
 class KMeans:
@@ -25,7 +26,7 @@ class KMeans:
         print("------------------------Initializing K-Means------------------------")
         self.dataset = dataset  # 所有待聚类的样本
         self.k = k  # 聚类的簇数, 默认为10
-        self.auv_type = auv_type  # 按照当前辅助变量进行分区
+        self.auv_type = auv_type  # 按照当前辅助变量进行分区, "confidence" / "las" / "dsa"
         self.num_iters = num_iters  # k-means的迭代次数
         self.partitions = self.initialize_partitions()  # k个分区/簇
 
@@ -111,5 +112,5 @@ class KMeans:
             # 每隔2次迭代输出一次信息
             if i % 2 == 0:
                 print(f"K-Means Iteration {i}, current cost: {self.compute_cost(self.partitions)}")
-        print("------------------------K-Means Cluster Done!------------------------")
+        print("------------------------K-Means Cluster Done!------------------------\n")
         return self.partitions
