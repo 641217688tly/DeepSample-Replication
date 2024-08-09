@@ -1,78 +1,111 @@
 import numpy as np
 
-# 1. 从待聚类的数据集中速记选择k个样本作为初始聚类中心
-def init_centroids(dataset, k):
+
+class Partition:
     """
-    从待聚类的数据集中速记选择k个样本作为初始聚类中心
-    :param dataset:
-    :param k:
-    :return:
+    一个Partition对象代表一个分区, 包含了分区的质心, 位于该分区的所有样本, 以及在完成聚类后分区的一些统计信息
     """
-    # 如果k大于dataset的样本数, 则抛出异常
-    if k > dataset.shape[0]:
-        raise Exception("k is greater than the number of samples")
-    # 从dataset中随机获取k个不重复的数据
-    centroids = dataset[np.random.choice(dataset.shape[0], k, replace=False)]
-    return centroids
+
+    def __init__(self, uid, centroid=None, samples=None, auv_type="confidence"):
+        self.uid = uid
+        self.centroid = centroid  # 质心值或质心向量
+        self.samples = samples  # 属于该分区的所有样本
+        self.auv_type = auv_type
+        self.avg_auv = 0  # 求辅助变量的均值
+        self.std = 0  # 标准差
+        self.normalized_std = 0  # 归一化标准差
 
 
-# 2. 将dataset的每个样本分配到最近的聚类中心
-def assign_cluster(dataset, centroids):
+class KMeans:
     """
-    将dataset的每个样本分配到最近的聚类中心
+    一个KMeans对象代表一个KMeans聚类器, 负责对给定的数据集按照指定的辅助变量进行聚类
     """
-    # 计算每个点到所有质心的距离
-    distances = np.sqrt(((dataset[:, np.newaxis] - centroids) ** 2).sum(axis=2))
-    # 找到最近的质心索引
-    cluster_assignment = np.argmin(distances, axis=1)
-    return cluster_assignment
 
+    def __init__(self, dataset, k=10, num_iters=100, auv_type="confidence"):
+        self.dataset = dataset  # 所有待聚类的样本
+        self.k = k  # 聚类的簇数, 默认为10
+        self.auv_type = auv_type  # 按照当前辅助变量进行分区
+        self.num_iters = num_iters  # k-means的迭代次数
+        self.partitions = self.initialize_partitions()  # k个分区/簇
 
-# 3. 计算被分配到不同聚类中的样本到其所属聚类中心的距离并计算成本函数
-def compute_cost(dataset, cluster_assignment, centroids):
-    """
-    计算被分配到不同聚类中的样本到其所属聚类中心的距离并计算成本函数
-    """
-    total_cost = 0
-    for i in range(centroids.shape[0]):
-        # 计算属于当前质心的所有点的距离平方和
-        total_cost += np.sum((dataset[cluster_assignment == i] - centroids[i]) ** 2)
-    return total_cost
+    def randomly_generate_centroids(self):
+        """
+        从待聚类的数据集中速记选择k个样本作为初始聚类中心
+        """
+        # 如果k大于dataset的样本数, 则抛出异常
+        if self.k > self.dataset.shape[0]:
+            raise Exception("k is greater than the number of samples")
+        # 先获得k个不重复的索引
+        indices = np.random.choice(self.dataset.shape[0], self.k, replace=False)
+        # 从样本中随机获取k个不重复的数据, 然后用这些样本构造Partition
+        partitions = []
+        for i, index in enumerate(indices):
+            partition = Partition(uid=i, centroid=getattr(self.dataset[index], self.auv_type, None),
+                                  auv_type=self.auv_type)
+            partitions.append(partition)
+        return partitions
 
+    def assign_partition(self, partitions):
+        """
+        将dataset的每个样本分配到与质心距离最近的分层中
+        """
+        # 先清空每个分层的样本
+        for partition in partitions:
+            partition.samples = []
+        # 先遍历dataset
+        for sample in self.dataset:
+            min_distance = np.inf
+            min_partition = None
+            # 遍历每个分层
+            for partition in partitions:
+                # 计算质心和样本之间的平方差距离
+                distance = np.sum((getattr(sample, self.auv_type, None) - partition.centroid) ** 2)
+                if distance < min_distance:
+                    min_distance = distance
+                    min_partition = partition
+            # 将样本分配到距离最近的分层中
+            min_partition.samples.append(sample)
 
-# 4.初始化多组聚类的质心, 选择其中最优的一组
-def find_best_centroids(dataset, k, num_iters=100):
-    """
-    初始化多组聚类的质心, 选择其中最优的一组
-    """
-    min_cost = np.inf
-    best_centroids = None
-    for _ in range(num_iters):
-        centroids = init_centroids(dataset, k)
-        cluster_assignment = assign_cluster(dataset, centroids)
-        cost = compute_cost(dataset, cluster_assignment, centroids)
-        if cost < min_cost:
-            min_cost = cost
-            best_centroids = centroids
-    return best_centroids
+    def compute_cost(self, partitions):
+        """
+        计算被分配到不同聚类中的样本到其所属聚类中心的距离并计算成本函数
+        """
+        total_cost = 0
+        for partition in partitions:  # 遍历每个分层
+            cost = 0
+            for sample in partition.samples:  # 遍历分层中的每个样本
+                cost += np.sum((getattr(sample, self.auv_type, None) - partition.centroid) ** 2)
+            total_cost += cost
+        return total_cost
 
+    def initialize_partitions(self):
+        """
+        用于初始化最优分层, 该函数将生成多组分层, 选择其中初始质心最优的一组
+        """
+        min_cost = np.inf
+        best_partitions = None
+        for i in range(100):
+            partitions = self.randomly_generate_centroids()
+            self.assign_partition(partitions)
+            cost = self.compute_cost(partitions)
+            if cost < min_cost:
+                min_cost = cost
+                best_partitions = partitions
+        return best_partitions
 
-# 5. 实现K-Means聚类算法
-def kmeans(dataset, k, num_iters):
-    """
-    实现K-Means聚类算法
-    """
-    # 1. 初始化多组聚类的质心, 选择其中最优的一组
-    centroids = find_best_centroids(dataset, k, num_iters)
-    # 2. 重复执行以下步骤num_iters次
-    for i in range(num_iters):
-        # 3. 将dataset的每个样本分配到最近的聚类中心
-        cluster_assignment = assign_cluster(dataset, centroids)
-        # 4. 计算每个样本到其所属聚类中心的距离并计算成本函数, 然后打印结果
-        cost = compute_cost(dataset, cluster_assignment, centroids)
-        print(f"Iteration {i + 1}, Cost: {cost}")
-        # 5. 更新聚类中各个质心的位置
-        for j in range(k):
-            centroids[j] = np.mean(dataset[cluster_assignment == j], axis=0)
-    # 6.将聚类后的结果返回
-    return centroids
+    def cluster(self):
+        """
+        开始聚类
+        """
+        for i in range(self.num_iters):
+            # 1. 将dataset的每个样本分配到与质心距离最近的分层中
+            self.assign_partition(self.partitions)
+            # 2. 更新每个分层的质心
+            for partition in self.partitions:
+                if len(partition.samples) == 0:
+                    continue
+                # 获取partition.samples中所有样本的辅助变量的均值
+                partition.centroid = np.mean([getattr(sample, self.auv_type, None) for sample in partition.samples])
+            # 每隔10次迭代输出一次信息
+            if i % 10 == 0:
+                print(f"Iteration {i}: cost={self.compute_cost(self.partitions)}")
