@@ -14,14 +14,16 @@ class Sample:
 
 class DataLoader:
     def __init__(self, model_path='../../data/model/modelA.h5', data_dir='../../data/dataset/MNIST/raw'):
+        print("------------------------Loading Data------------------------")
         self.model_path = model_path
         self.data_dir = data_dir
         self.model = tf.keras.models.load_model(model_path)
         self.samples = self.load_operational_dataset()
         # 初始化置信度, DSA和LAS
-        self.set_confidence()
-        self.set_dsa()
-        self.set_las()
+        self.load_confidence()
+        self.load_dsa()
+        self.load_las()
+        print("------------------------Data loaded successfully!------------------------\n")
 
     def load_mnist_images(self, file_path):
         import struct
@@ -61,22 +63,30 @@ class DataLoader:
             samples.append(sample)
         return samples
 
-    def set_confidence(self):
-        print(self.model.summary())
+    def load_confidence(self):
+        print("Loading confidence...")
+        # 确保 TensorFlow 能使用 GPU
+        gpus = tf.config.experimental.list_physical_devices('GPU')
+        if gpus:
+            try:
+                # 设置 TensorFlow 使其在每个 GPU 上尽可能多地使用内存
+                for gpu in gpus:
+                    tf.config.experimental.set_memory_growth(gpu, True)
+            except RuntimeError as e:
+                print("Error setting GPU: ", e)
+
         # 将Sample对象列表中的数据提取出来并转换为模型输入格式
-        images = np.array([sample.data for sample in self.samples])
-        # 归一化到0-1范围
-        images /= 255.0
-        # 使用模型进行预测
+        images = np.array([sample.data for sample in self.samples], dtype=np.float32)
+        images /= 255.0  # 归一化到0-1范围
+
+        # 使用模型进行预测后更新每个Sample对象的置信度
         predictions = self.model.predict(images)
-        # 更新每个Sample对象的置信度
         confidences = np.max(predictions, axis=1)
         for sample, confidence in zip(self.samples, confidences):
             sample.confidence = confidence
 
-    def set_las(self):
+    def load_las(self):
         pass
 
-    def set_dsa(self):
+    def load_dsa(self):
         pass
-

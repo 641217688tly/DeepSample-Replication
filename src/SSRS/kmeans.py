@@ -21,7 +21,8 @@ class KMeans:
     一个KMeans对象代表一个KMeans聚类器, 负责对给定的数据集按照指定的辅助变量进行聚类
     """
 
-    def __init__(self, dataset, k=10, num_iters=100, auv_type="confidence"):
+    def __init__(self, dataset, k=10, num_iters=20, auv_type="confidence"):
+        print("------------------------Initializing K-Means------------------------")
         self.dataset = dataset  # 所有待聚类的样本
         self.k = k  # 聚类的簇数, 默认为10
         self.auv_type = auv_type  # 按照当前辅助变量进行分区
@@ -33,10 +34,10 @@ class KMeans:
         从待聚类的数据集中速记选择k个样本作为初始聚类中心
         """
         # 如果k大于dataset的样本数, 则抛出异常
-        if self.k > self.dataset.shape[0]:
+        if self.k > len(self.dataset):
             raise Exception("k is greater than the number of samples")
         # 先获得k个不重复的索引
-        indices = np.random.choice(self.dataset.shape[0], self.k, replace=False)
+        indices = np.random.choice(len(self.dataset), self.k, replace=False)
         # 从样本中随机获取k个不重复的数据, 然后用这些样本构造Partition
         partitions = []
         for i, index in enumerate(indices):
@@ -84,13 +85,14 @@ class KMeans:
         """
         min_cost = np.inf
         best_partitions = None
-        for i in range(100):
+        for i in range(10):
             partitions = self.randomly_generate_centroids()
             self.assign_partition(partitions)
             cost = self.compute_cost(partitions)
             if cost < min_cost:
                 min_cost = cost
                 best_partitions = partitions
+                print(f"Initializing greater partitions' centroid, current cost: {cost}")
         return best_partitions
 
     def cluster(self):
@@ -106,7 +108,8 @@ class KMeans:
                     continue
                 # 获取partition.samples中所有样本的辅助变量的均值
                 partition.centroid = np.mean([getattr(sample, self.auv_type, None) for sample in partition.samples])
-            # 每隔10次迭代输出一次信息
-            if i % 10 == 0:
-                print(f"Iteration {i}: cost={self.compute_cost(self.partitions)}")
+            # 每隔2次迭代输出一次信息
+            if i % 2 == 0:
+                print(f"K-Means Iteration {i}, current cost: {self.compute_cost(self.partitions)}")
+        print("------------------------K-Means Cluster Done!------------------------")
         return self.partitions
