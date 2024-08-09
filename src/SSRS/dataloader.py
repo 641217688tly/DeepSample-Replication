@@ -11,12 +11,17 @@ class Sample:
         self.las = None
         self.dsa = None
 
+
 class DataLoader:
     def __init__(self, model_path='../../data/model/modelA.h5', data_dir='../../data/dataset/MNIST/raw'):
         self.model_path = model_path
         self.data_dir = data_dir
         self.model = tf.keras.models.load_model(model_path)
         self.samples = self.load_operational_dataset()
+        # 初始化置信度, DSA和LAS
+        self.set_confidence()
+        self.set_dsa()
+        self.set_las()
 
     def load_mnist_images(self, file_path):
         import struct
@@ -48,21 +53,30 @@ class DataLoader:
         operational_images = np.concatenate([train_images, test_images[:500]])  # 60500
         operational_labels = np.concatenate([train_labels, test_labels[:500]])  # 60500
 
-        # 处理图片数据为模型可接受的格式
-        operational_images = operational_images.reshape((-1, 28, 28, 1)) / 255.0
         # 创建Sample类的列表
         samples = []
         for image_data, label_data in zip(operational_images, operational_labels):
             # 创建一个Sample对象并添加到列表中
             sample = Sample(data=image_data, label=label_data)
             samples.append(sample)
+        return samples
 
-        # 预测置信度
-        predictions = self.model.predict(operational_images)
-        confidences = np.max(predictions, axis=1)  # 取概率最大值作为置信度
-
+    def set_confidence(self):
+        print(self.model.summary())
+        # 将Sample对象列表中的数据提取出来并转换为模型输入格式
+        images = np.array([sample.data for sample in self.samples])
+        # 归一化到0-1范围
+        images /= 255.0
+        # 使用模型进行预测
+        predictions = self.model.predict(images)
         # 更新每个Sample对象的置信度
-        for sample, confidence in zip(samples, confidences):
+        confidences = np.max(predictions, axis=1)
+        for sample, confidence in zip(self.samples, confidences):
             sample.confidence = confidence
 
-        return samples
+    def set_las(self):
+        pass
+
+    def set_dsa(self):
+        pass
+

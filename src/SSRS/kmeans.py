@@ -109,3 +109,4 @@ class KMeans:
             # 每隔10次迭代输出一次信息
             if i % 10 == 0:
                 print(f"Iteration {i}: cost={self.compute_cost(self.partitions)}")
+        return self.partitions
