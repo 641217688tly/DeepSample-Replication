@@ -41,7 +41,7 @@ def compute_cost(dataset, cluster_assignment, centroids):
 
 
 # 4.初始化多组聚类的质心, 选择其中最优的一组
-def find_best_centroids(dataset, k, num_iters):
+def find_best_centroids(dataset, k, num_iters=100):
     """
     初始化多组聚类的质心, 选择其中最优的一组
     """
@@ -75,4 +75,4 @@ def kmeans(dataset, k, num_iters):
         for j in range(k):
             centroids[j] = np.mean(dataset[cluster_assignment == j], axis=0)
     # 6.将聚类后的结果返回
-    return centroids, cluster_assignment
+    return centroids
