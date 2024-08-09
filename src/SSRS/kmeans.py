@@ -109,8 +109,9 @@ class KMeans:
                     continue
                 # 获取partition.samples中所有样本的辅助变量的均值
                 partition.centroid = np.mean([getattr(sample, self.auv_type, None) for sample in partition.samples])
-            # 每隔2次迭代输出一次信息
-            if i % 2 == 0:
+
+            if i % 2 == 0: # 每隔2次迭代输出一次信息
                 print(f"K-Means Iteration {i}, current cost: {self.compute_cost(self.partitions)}")
+
         print("------------------------K-Means Cluster Done!------------------------\n")
         return self.partitions
