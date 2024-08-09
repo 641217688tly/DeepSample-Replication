@@ -1,5 +1,16 @@
 import numpy as np
 
+class Cluster: # Partition
+    def __init__(self, id, centroid, dataset):
+        self.id = id
+        self.centroid = centroid # 质心
+        self.dataset = dataset # 数据集
+        self.avg_confidence = 0 # 平均置信度
+        self.std = 0 # 标准差
+        self.normalized_std = 0 # 归一化标准差
+        self.sample_size = 0 # 样本数
+
+
 # 1. 从待聚类的数据集中速记选择k个样本作为初始聚类中心
 def init_centroids(dataset, k):
     """
