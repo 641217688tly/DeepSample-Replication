@@ -22,7 +22,7 @@ class KMeans:
     一个KMeans对象代表一个KMeans聚类器, 负责对给定的数据集按照指定的辅助变量进行聚类
     """
 
-    def __init__(self, dataset, k=10, num_iters=20, auv_type="confidence"):
+    def __init__(self, dataset, k=10, num_iters=25, auv_type="confidence"):
         print("------------------------Initializing K-Means------------------------")
         self.dataset = dataset  # 所有待聚类的样本
         self.k = k  # 聚类的簇数, 默认为10

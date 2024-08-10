@@ -33,14 +33,15 @@ class Sampler:
         std_values = [partition.std for partition in self.partitions]
         total_std = sum(std_values)
         for partition in self.partitions:
-            partition.normalized_std = partition.std / total_std
+            partition.normalized_std = round(partition.std / total_std, 5)
 
     def calculate_n_p(self):
         """计算每个分区的采样样本数。"""
         weighted_stds = [partition.normalized_std * len(partition.samples) for partition in self.partitions]
         total_weighted_std = sum(weighted_stds)
         for partition in self.partitions:
-            partition.n_p = int(self.budget * (partition.normalized_std * len(partition.samples) / total_weighted_std))
+            partition.n_p = round(
+                self.budget * (partition.normalized_std * len(partition.samples) / total_weighted_std)) # 四舍五入
 
     def sample(self):
         """从每个分区中采样，并将采样结果存入test_set后返回。"""

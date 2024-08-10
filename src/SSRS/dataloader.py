@@ -84,7 +84,6 @@ class DataLoader:
         predictions = self.model.predict(images)
         confidences = np.max(predictions, axis=1)
         for sample, confidence in zip(self.samples, confidences):
-            print(confidence)
             sample.confidence = confidence
 
     def load_las(self):
