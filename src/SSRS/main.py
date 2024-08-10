@@ -7,8 +7,9 @@ if __name__ == '__main__':
     model_path = '../../data/model/modelC.h5'
     data_dir = '../../data/dataset/MNIST/raw'
     dataloader = DataLoader(model_path=model_path, data_dir=data_dir)  # 加载数据
+    samples = dataloader.samples
 
-    kmeans = KMeans(dataloader.samples, k=10, num_iters=50, auv_type="confidence")  # 初始化KMeans
+    kmeans = KMeans(samples, k=10, num_iters=50, auv_type="confidence")  # 初始化KMeans
     partitions = kmeans.cluster()  # 获得聚类后的分层
 
     sampler = Sampler(partitions, budget=800)  # 初始化采样器
