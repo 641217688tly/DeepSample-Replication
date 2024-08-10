@@ -10,6 +10,8 @@ class Sample:
         self.confidence = None  # 置信度
         self.las = None
         self.dsa = None
+        self.partition = None
+        self.predicted_label = None
 
 
 class DataLoader:
@@ -77,12 +79,12 @@ class DataLoader:
 
         # 将Sample对象列表中的数据提取出来并转换为模型输入格式
         images = np.array([sample.data for sample in self.samples], dtype=np.float32)
-        images /= 255.0  # 归一化到0-1范围
 
         # 使用模型进行预测后更新每个Sample对象的置信度
         predictions = self.model.predict(images)
         confidences = np.max(predictions, axis=1)
         for sample, confidence in zip(self.samples, confidences):
+            print(confidence)
             sample.confidence = confidence
 
     def load_las(self):

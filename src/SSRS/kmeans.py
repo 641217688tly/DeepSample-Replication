@@ -10,7 +10,7 @@ class Partition:
         self.uid = uid
         self.centroid = centroid  # 质心值或质心向量
         self.samples = samples  # 属于该分区的所有样本
-        self.auv_type = auv_type # "confidence" / "las" / "dsa"
+        self.auv_type = auv_type  # "confidence" / "las" / "dsa"
         self.avg_auv = 0  # 求辅助变量的均值
         self.std = 0  # 标准差
         self.normalized_std = 0  # 归一化标准差
@@ -54,7 +54,7 @@ class KMeans:
         # 先清空每个分层的样本
         for partition in partitions:
             partition.samples = []
-        # 先遍历dataset
+        # 然后遍历dataset
         for sample in self.dataset:
             min_distance = np.inf
             min_partition = None
@@ -66,6 +66,7 @@ class KMeans:
                     min_distance = distance
                     min_partition = partition
             # 将样本分配到距离最近的分层中
+            sample.partition = min_partition  # 更新样本的分区
             min_partition.samples.append(sample)
 
     def compute_cost(self, partitions):
@@ -110,8 +111,12 @@ class KMeans:
                 # 获取partition.samples中所有样本的辅助变量的均值
                 partition.centroid = np.mean([getattr(sample, self.auv_type, None) for sample in partition.samples])
 
-            if i % 2 == 0: # 每隔2次迭代输出一次信息
+            if i % 2 == 0:  # 每隔2次迭代输出一次信息
                 print(f"K-Means Iteration {i}, current cost: {self.compute_cost(self.partitions)}")
+            # 如果是最后一次迭代, 则输出最终的cost
+            if i == self.num_iters - 1:
+                # 将所有样本的partition属性进行更新(因为最后一次迭代时每个partition质心的值会有微量的更新)
+                self.assign_partition(self.partitions)
 
         print("------------------------K-Means Cluster Done!------------------------\n")
         return self.partitions
