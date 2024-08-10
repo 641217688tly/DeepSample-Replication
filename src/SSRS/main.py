@@ -4,7 +4,7 @@ from sampling import *
 from estimator import *
 
 if __name__ == '__main__':
-    model_path = '../../data/model/modelC.h5'
+    model_path = '../../data/model/modelB.h5'
     data_dir = '../../data/dataset/MNIST/raw'
     dataloader = DataLoader(model_path=model_path, data_dir=data_dir)  # 加载数据
     samples = dataloader.samples

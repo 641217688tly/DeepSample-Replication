@@ -37,17 +37,18 @@ class Sampler:
 
     def calculate_n_p(self):
         """计算每个分区的采样样本数。"""
-        weighted_stds = [partition.normalized_std * len(partition.samples) for partition in self.partitions]
+        # TODO weighted_stds = [partition.normalized_std * len(partition.samples) for partition in self.partitions]
+        weighted_stds = [partition.std * len(partition.samples) for partition in self.partitions]
         total_weighted_std = sum(weighted_stds)
         for partition in self.partitions:
-            partition.n_p = round(
-                self.budget * (partition.normalized_std * len(partition.samples) / total_weighted_std)) # 四舍五入
+            ratio = partition.std * round(len(partition.samples) / total_weighted_std, 5)
+            partition.n_p = round(self.budget * ratio)  # 四舍五入
 
     def sample(self):
         """从每个分区中采样，并将采样结果存入test_set后返回。"""
         for partition in self.partitions:
             sampled_samples = np.random.choice(partition.samples, partition.n_p, replace=False)
-            self.test_set[partition] = sampled_samples # 以partition对象为键,采样得到的样本数组为值,存入test_set
+            self.test_set[partition] = sampled_samples  # 以partition对象为键,采样得到的样本数组为值,存入test_set
             print(f"Sampled {partition.n_p} samples from partition {partition.uid}")
         print(f"Total number of samples: {len(self.test_set)}")
         print("------------------------Sampling Done!------------------------\n")
