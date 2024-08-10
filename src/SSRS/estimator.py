@@ -6,6 +6,12 @@ class Estimator:
         print("------------------------Initializing Estimator------------------------")
         self.test_set = test_set
         self.model = tf.keras.models.load_model(model_path)
+        #self.debug()
+
+    def debug(self):
+        for sample in self.test_set:
+            print(f"")
+
 
     def estimate(self):
         successes = []

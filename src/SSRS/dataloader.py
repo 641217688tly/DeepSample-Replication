@@ -10,6 +10,8 @@ class Sample:
         self.confidence = None  # 置信度
         self.las = None
         self.dsa = None
+        self.partition = None
+        self.predicted_label = None
 
 
 class DataLoader:
@@ -83,7 +85,7 @@ class DataLoader:
         predictions = self.model.predict(images)
         confidences = np.max(predictions, axis=1)
         for sample, confidence in zip(self.samples, confidences):
-            sample.confidence = confidence
+            sample.confidence = 1 - confidence
 
     def load_las(self):
         pass
