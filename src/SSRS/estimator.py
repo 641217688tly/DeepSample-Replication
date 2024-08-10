@@ -4,11 +4,14 @@ import csv
 
 
 class Estimator:
-    def __init__(self, test_set, model_path='../../data/model/modelA.h5'):
+    def __init__(self, test_set, model_path=None, csv_path=None):
         print("------------------------Initializing Estimator------------------------")
         self.test_set = test_set
-        self.model_name = model_path.split('/')[-1].split('.')[0]
-        self.model = tf.keras.models.load_model(model_path)
+        self.csv_path = csv_path
+        self.model_path = model_path
+        self.model = None
+        if model_path is not None:
+            self.model = tf.keras.models.load_model(model_path)
         # self.debug()
 
     def debug(self):
@@ -35,15 +38,21 @@ class Estimator:
                             f'Partition{sample.partition.uid}(Centroid Value:{sample.partition.centroid})',
                             sample.confidence, sample.dsa if sample.dsa is not None else 'null',
                             sample.lsa if sample.lsa is not None else 'null'])
-
-        with open(f'../../data/results/{self.model_name}.csv', 'w', newline='') as file:
-            writer = csv.writer(file)
-            # 表头: ID(自增),outcome(模型预测的结果是正确还是错误),label(数据的标签),partition(数据的所在分区),confidence(置信度),dsa(如果没有则为None),lsa(如果没有则为None)
-            writer.writerow(['ID', 'outcome', 'label', 'predicted label', 'partition', 'confidence(= 1 - Inference Probability)', 'dsa', 'lsa'])
-            writer.writerows(results)
-
         # 计算准确率
         accuracy = round(successes / len(self.test_set), 5)
+        csv_file_name = self.model_path.split('/')[-1].split('.')[0]
+        with open(f'../../data/results/{csv_file_name}.csv', 'w', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow([f'Successes: {successes}',
+                             f'Failures: {len(self.test_set) - successes}',
+                             f'Budget: {len(self.test_set)}',
+                             f'Model Accuracy: {accuracy:.4f}'])
+            # 表头: ID(自增),outcome(模型预测的结果是正确还是错误),label(数据的标签),partition(数据的所在分区),confidence(置信度),dsa(如果没有则为None),lsa(如果没有则为None)
+            writer.writerow(
+                ['ID', 'outcome', 'label', 'predicted label', 'partition', 'confidence(= 1 - Inference Probability)',
+                 'dsa', 'lsa'])
+            writer.writerows(results)
+
         print(f"Model Accuracy: {accuracy}")
         print(f"Number of successful predictions: {successes}")
         print(f"Number of failed predictions: {len(self.test_set) - successes}")
@@ -63,43 +72,21 @@ class Estimator:
                             f'Partition{sample.partition.uid}(Centroid Value:{sample.partition.centroid})',
                             sample.confidence, sample.dsa if sample.dsa != None else 'null',
                             sample.lsa if sample.lsa != None else 'null'])
-
-        with open(f'../../data/results/replicate_{self.model_name}.csv', 'w', newline='') as file:
-            writer = csv.writer(file)
-            # 表头: ID(自增),outcome(模型预测的结果是正确还是错误),label(数据的标签),partition(数据的所在分区),confidence(置信度),dsa(如果没有则为None),lsa(如果没有则为None)
-            writer.writerow(['ID', 'outcome', 'label', 'predicted label', 'partition', 'confidence(= 1 - Inference Probability)', 'dsa', 'lsa'])
-            writer.writerows(results)
-
         # 计算准确率
         accuracy = round(successes / len(self.test_set), 5)
-        print(f"Model Accuracy: {accuracy}")
-        print(f"Number of successful predictions: {successes}")
-        print(f"Number of failed predictions: {len(self.test_set) - successes}")
-        print("------------------------Estimating Done!------------------------\n")
-
-    def replicate(self):  # 用于从论文作者提供的数据中复现实验结果
-        # 更新每个Sample对象的预测标签, 并统计成功和失败的预测
-        successes = 0
-        results = []
-        for i, sample in enumerate(self.test_set):
-            if sample.predicted_label == sample.label:
-                successes += 1
-            results.append([i + 1,
-                            'pass' if sample.predicted_label == sample.label else 'fail',
-                            sample.label,
-                            sample.predicted_label,
-                            f'Partition{sample.partition.uid}(Centroid Value:{sample.partition.centroid})',
-                            sample.confidence, sample.dsa if sample.dsa != None else 'null',
-                            sample.lsa if sample.lsa != None else 'null'])
-
-        with open(f'../../data/results/replicate_{self.model_name}.csv', 'w', newline='') as file:
+        csv_file_name = self.csv_path.split('/')[-1].split('.')[0]
+        with open(f'../../data/results/replicate_{csv_file_name}.csv', 'w', newline='') as file:
             writer = csv.writer(file)
+            writer.writerow([f'Successes: {successes}',
+                             f'Failures: {len(self.test_set) - successes}',
+                             f'Budget: {len(self.test_set)}',
+                             f'Model Accuracy: {accuracy:.4f}'])
             # 表头: ID(自增),outcome(模型预测的结果是正确还是错误),label(数据的标签),partition(数据的所在分区),confidence(置信度),dsa(如果没有则为None),lsa(如果没有则为None)
-            writer.writerow(['ID', 'outcome', 'label', 'predicted label', 'partition', 'confidence', 'dsa', 'lsa'])
+            writer.writerow(
+                ['ID', 'outcome', 'label', 'predicted label', 'partition', 'confidence(= 1 - Inference Probability)',
+                 'dsa', 'lsa'])
             writer.writerows(results)
 
-        # 计算准确率
-        accuracy = round(successes / len(self.test_set), 5)
         print(f"Model Accuracy: {accuracy}")
         print(f"Number of successful predictions: {successes}")
         print(f"Number of failed predictions: {len(self.test_set) - successes}")

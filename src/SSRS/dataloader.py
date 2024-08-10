@@ -17,14 +17,14 @@ class Sample:
 
 class DataLoader:
     def __init__(self, model_path='../../data/model/modelA.h5',
-                 data_dir='../../data/dataset/MNIST/raw', result_path=None):
+                 data_dir='../../data/dataset/MNIST/raw', csv_path=None):
         print("------------------------Loading Data------------------------")
         self.model_path = model_path
         self.data_dir = data_dir
-        self.result_path = result_path
+        self.csv_path = csv_path
         self.samples = None
         self.model = None
-        if result_path is None:
+        if csv_path is None:
             self.load_data_from_mnist()
         else:
             self.load_data_from_csv()
@@ -34,7 +34,7 @@ class DataLoader:
     def load_data_from_csv(self):
         print("Loading data from csv...")
         # csv的表头为: ID,outcome,SUT,confidence,dsa,lsa,uniform
-        csv = pd.read_csv(self.result_path)  # 读取csv文件
+        csv = pd.read_csv(self.csv_path)  # 读取csv文件
         samples = []
         for index, row in csv.iterrows():
             sample = Sample(data=None, label=row['SUT'])
