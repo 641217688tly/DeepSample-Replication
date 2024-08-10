@@ -84,7 +84,7 @@ class DataLoader:
         predictions = self.model.predict(images)
         confidences = np.max(predictions, axis=1)
         for sample, confidence in zip(self.samples, confidences):
-            sample.confidence = confidence
+            sample.confidence = 1 - confidence  # 原文假设辅助变量与准确性负相关(即辅助变量$𝜒_i$的值越大, DNN模型对样本$d_i$预测的置信度越低, 那么DNN越有可能产生误判), 因此$𝜒_i = 1- C_{d_i}$
 
     def load_las(self):
         pass

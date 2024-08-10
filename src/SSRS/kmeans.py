@@ -37,14 +37,12 @@ class KMeans:
         # 如果k大于dataset的样本数, 则抛出异常
         if self.k > len(self.dataset):
             raise Exception("k is greater than the number of samples")
-        # 先获得k个不重复的索引
+        # 先获得k个不重复的索引, 然后根据索引获取centroids并从大到小排序
         indices = np.random.choice(len(self.dataset), self.k, replace=False)
+        centroids = sorted([getattr(self.dataset[index], self.auv_type, None) for index in indices])
+
         # 从样本中随机获取k个不重复的数据, 然后用这些样本构造Partition
-        partitions = []
-        for i, index in enumerate(indices):
-            partition = Partition(uid=i, centroid=getattr(self.dataset[index], self.auv_type, None),
-                                  auv_type=self.auv_type)
-            partitions.append(partition)
+        partitions = [Partition(uid, centroid) for uid, centroid in enumerate(centroids)]
         return partitions
 
     def assign_partition(self, partitions):
@@ -87,14 +85,14 @@ class KMeans:
         """
         min_cost = np.inf
         best_partitions = None
-        for i in range(10):
+        for i in range(15):
             partitions = self.randomly_generate_centroids()
             self.assign_partition(partitions)
             cost = self.compute_cost(partitions)
             if cost < min_cost:
                 min_cost = cost
                 best_partitions = partitions
-                print(f"Initializing greater partitions' centroid, current cost: {cost}")
+                print(f"Initializing greater partitions' centroid, current cost: {cost}, current centroids:{[partition.centroid for partition in partitions]}")
         return best_partitions
 
     def cluster(self):
@@ -112,7 +110,7 @@ class KMeans:
                 partition.centroid = np.mean([getattr(sample, self.auv_type, None) for sample in partition.samples])
 
             if i % 2 == 0:  # 每隔2次迭代输出一次信息
-                print(f"K-Means Iteration {i}, current cost: {self.compute_cost(self.partitions)}")
+                print(f"K-Means Iteration {i}, current cost: {self.compute_cost(self.partitions)}, current centroids:{[partition.centroid for partition in self.partitions]}")
             # 如果是最后一次迭代, 则输出最终的cost
             if i == self.num_iters - 1:
                 # 将所有样本的partition属性进行更新(因为最后一次迭代时每个partition质心的值会有微量的更新)
