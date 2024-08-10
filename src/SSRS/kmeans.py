@@ -14,7 +14,11 @@ class Partition:
         self.avg_auv = 0  # 求辅助变量的均值
         self.std = 0  # 标准差
         self.normalized_std = 0  # 归一化标准差
+
         self.n_p = 0  # 从该分区中采样的样本数
+        self.successes = 0  # 该分区中的样本被模型正确预测的数量
+        self.failures = 0  # 该分区中的样本被模型错误预测的数量
+        self.theta_p = 0  # 通过该分区的样本计算得到的模型的错误率
 
 
 class KMeans:

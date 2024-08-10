@@ -6,7 +6,7 @@ class Sampler:
         print("------------------------Initializing Sampler------------------------")
         self.partitions = partitions
         self.budget = budget
-        self.test_set = []
+        self.test_set = {}
         self.calculate_stats()
 
     def calculate_stats(self):
@@ -47,7 +47,7 @@ class Sampler:
         """从每个分区中采样，并将采样结果存入test_set后返回。"""
         for partition in self.partitions:
             sampled_samples = np.random.choice(partition.samples, partition.n_p, replace=False)
-            self.test_set.extend(sampled_samples)
+            self.test_set[partition] = sampled_samples # 以partition对象为键,采样得到的样本数组为值,存入test_set
             print(f"Sampled {partition.n_p} samples from partition {partition.uid}")
         print(f"Total number of samples: {len(self.test_set)}")
         print("------------------------Sampling Done!------------------------\n")

@@ -103,8 +103,8 @@ class DataLoader:
                 print("Error setting GPU: ", e)
 
         # 将Sample对象列表中的数据提取出来并转换为模型输入格式
-        images = np.array([sample.data for sample in self.samples], dtype=np.float32) / 255.0
-
+        images = np.array([sample.data for sample in self.samples], dtype=np.float32)
+        # images = images / 255.0  # 将像素值归一化到[0, 1]之间
         # 使用模型进行预测后更新每个Sample对象的置信度
         predictions = self.model.predict(images)
         confidences = np.max(predictions, axis=1)

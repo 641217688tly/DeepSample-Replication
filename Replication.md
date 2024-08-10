@@ -59,7 +59,18 @@ $$
 
 使用抽样得到的测试数据集$T$来评估DNN的准确率, 同时统计被DNN误分类的样本的数量
 
-
+先计算每个分层内部的模型错误率$\hat{\theta}_p$:
+$$
+\hat{\theta}_p = \frac{1}{n} \sum_{i=1}^{n} z_i
+$$
+然后计算模型的整体错误率$\hat{\theta}$:
+$$
+\hat{\theta} = \frac{1}{N} \sum_{p=1}^P N_p \hat{\theta}_p \quad (12)
+$$
+最后计算模型的准确率$ξ$:
+$$
+ξ = 1 - θ
+$$
 
 ## 6. Repetition
 

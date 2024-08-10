@@ -15,4 +15,4 @@ if __name__ == '__main__':
     test_set = sampler.sample()  # 采样
 
     estimator = Estimator(test_set, csv_path=csv_path)  # 初始化评估器
-    estimator.replicate()  # 复现
+    estimator.estimate()  # 复现
