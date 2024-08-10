@@ -1,6 +1,7 @@
 import os
 import numpy as np
 import tensorflow as tf
+import pandas as pd
 
 
 class Sample:
@@ -8,24 +9,48 @@ class Sample:
         self.data = data
         self.label = label
         self.confidence = None  # 置信度
-        self.las = None
+        self.lsa = None
         self.dsa = None
         self.partition = None
         self.predicted_label = None
 
 
 class DataLoader:
-    def __init__(self, model_path='../../data/model/modelA.h5', data_dir='../../data/dataset/MNIST/raw'):
+    def __init__(self, model_path='../../data/model/modelA.h5',
+                 data_dir='../../data/dataset/MNIST/raw', result_path=None):
         print("------------------------Loading Data------------------------")
         self.model_path = model_path
         self.data_dir = data_dir
-        self.model = tf.keras.models.load_model(model_path)
-        self.samples = self.load_operational_dataset()
-        # 初始化置信度, DSA和LAS
+        self.result_path = result_path
+        self.samples = None
+        self.model = None
+        if result_path is None:
+            self.load_data_from_mnist()
+        else:
+            self.load_data_from_csv()
+
+        print("------------------------Data loaded successfully!------------------------\n")
+
+    def load_data_from_csv(self):
+        print("Loading data from csv...")
+        # csv的表头为: ID,outcome,SUT,confidence,dsa,lsa,uniform
+        csv = pd.read_csv(self.result_path)  # 读取csv文件
+        samples = []
+        for index, row in csv.iterrows():
+            sample = Sample(data=None, label=row['SUT'])
+            sample.confidence = 1 - row['confidence']  # 原文假设辅助变量与准确性负相关(即辅助变量$𝜒_i$的值越大, DNN模型对样本$d_i$预测的置信度越低, 那么DNN越有可能产生误判), 因此$𝜒_i = 1- C_{d_i}$
+            sample.lsa = row['lsa']
+            sample.dsa = row['dsa']
+            sample.predicted_label = row['SUT'] if row['outcome'] == 'Pass' else -1
+            samples.append(sample)
+        self.samples = samples
+
+    def load_data_from_mnist(self):
+        self.model = tf.keras.models.load_model(self.model_path)
+        self.load_operational_dataset()
         self.load_confidence()
         self.load_dsa()
-        self.load_las()
-        print("------------------------Data loaded successfully!------------------------\n")
+        self.load_lsa()
 
     def load_mnist_images(self, file_path):
         import struct
@@ -63,7 +88,7 @@ class DataLoader:
             # 创建一个Sample对象并添加到列表中
             sample = Sample(data=image_data, label=label_data)
             samples.append(sample)
-        return samples
+        self.samples = samples
 
     def load_confidence(self):
         print("Loading confidence...")
@@ -86,7 +111,7 @@ class DataLoader:
         for sample, confidence in zip(self.samples, confidences):
             sample.confidence = 1 - confidence  # 原文假设辅助变量与准确性负相关(即辅助变量$𝜒_i$的值越大, DNN模型对样本$d_i$预测的置信度越低, 那么DNN越有可能产生误判), 因此$𝜒_i = 1- C_{d_i}$
 
-    def load_las(self):
+    def load_lsa(self):
         pass
 
     def load_dsa(self):
