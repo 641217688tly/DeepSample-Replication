@@ -47,7 +47,7 @@ class Estimator:
             writer.writerows(results)
 
         # 计算准确率
-        accuracy = successes / len(self.test_set)
+        accuracy = round(successes / len(self.test_set), 5)
         print(f"Model Accuracy: {accuracy}")
         print(f"Number of successful predictions: {successes}")
         print(f"Number of failed predictions: {len(self.test_set) - successes}")
