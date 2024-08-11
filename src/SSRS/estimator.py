@@ -43,7 +43,7 @@ class Estimator:
                         successes += 1
             partition.failures = failures
             partition.successes = successes
-            partition.theta_p = round(failures / partition.n_p, 5)
+            partition.theta_p = round(failures / (partition.n_p + 1e-6), 5)
             print(f"Partition{partition.uid} theta_p: {partition.theta_p}")
 
     def estimate(self):
@@ -61,7 +61,8 @@ class Estimator:
                                 sample.label,
                                 sample.predicted_label,
                                 f'Partition{partition.uid}(Centroid Value:{partition.centroid})',
-                                sample.confidence, sample.dsa if sample.dsa is not None else 'null',
+                                sample.confidence if sample.confidence is not None else 'null',
+                                sample.dsa if sample.dsa is not None else 'null',
                                 sample.lsa if sample.lsa is not None else 'null'])
         theta_p = round(theta_p / len(results), 5)  # accuracy = 1 - theta_p
 

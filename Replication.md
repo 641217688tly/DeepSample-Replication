@@ -34,10 +34,10 @@ MNIST数据集
 $$
 \bar{x}_p = \frac{1}{N_p} \sum_{i=1}^{N_p}x_i
 $$
-然后逐个计算每个分区的标准差$\sigma_p$:
-$$
-\sigma_p = \sqrt{\frac{1}{N_p - 1} \sum_{i=1}^{N_p} (x_i - \bar{x}_p)^2}
-$$
+> 然后逐个计算每个分区的标准差$\sigma_p$:
+> $$
+> \sigma_p = \sqrt{\frac{1}{N_p - 1} \sum_{i=1}^{N_p} (x_i - \bar{x}_p)^2}
+> $$
 
 
 然后归一化该标准差, 使得这10个分区的标准差之和为1, 即($\sigma_{p_1} + \sigma_{p_2}+ ... + \sigma_{p_{10}} =1$):
